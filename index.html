@@ -49,7 +49,8 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 .back-btn{background:rgba(255,255,255,.2);border:none;color:white;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;padding:7px 12px;border-radius:9px;cursor:pointer;flex-shrink:0}
 .back-btn:active{background:rgba(255,255,255,.3)}
 .detail-title{color:white;font-size:17px;font-weight:900;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.detail-content{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:24px}
+.more-info-btn{background:rgba(255,255,255,.2);color:white;font-family:'Heebo',sans-serif;font-size:11px;font-weight:700;padding:6px 10px;border-radius:9px;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.more-info-btn:active{background:rgba(255,255,255,.35)}overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:24px}
 .top-info{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .top-info-label{font-size:11px;color:var(--muted);font-weight:600}
 .brand-section{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px}
@@ -58,9 +59,10 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 .brand-scroll::-webkit-scrollbar{display:none}
 .brand-chip{flex-shrink:0;padding:7px 12px;border:2px solid var(--border);border-radius:10px;font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;background:white;color:var(--text);cursor:pointer;white-space:normal;max-width:160px;line-height:1.35;text-align:right;transition:all .15s}
 .brand-chip.active{background:var(--accent);color:white;border-color:var(--accent)}
-.info-section{margin:12px 16px 0}
-.section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.info-section{margin:0;padding:14px 16px;border-bottom:3px solid var(--bg)}
+.info-section+.info-section{border-top:none}
+.section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:white;background:var(--accent);margin:-14px -16px 12px;padding:8px 16px;display:flex;align-items:center;gap:6px}
+.section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.3)}
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
 .card.full{grid-column:1/-1}
@@ -71,6 +73,7 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 .room{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
 .cold{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
 .immed{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.alerts-divider{height:2px;background:var(--border);margin:16px 16px 0;border-radius:2px}
 .notes-card{margin:12px 16px 0;background:var(--danger-bg);border:1.5px solid #fca5a5;border-radius:12px;padding:14px}
 .notes-card .card-label{color:var(--danger);font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px}
 .notes-card .card-value{font-size:13px;color:#7f1d1d;font-weight:500;white-space:pre-line}
@@ -97,8 +100,12 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 .recent-item:last-child{border-bottom:none}
 .recent-item:active{background:var(--accent-light)}
 .recent-item-icon{color:var(--light);font-size:13px}position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end}
-#glossary-modal,#terms-info-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end}
-#glossary-modal.open,#terms-info-modal.open{display:flex}
+#glossary-modal{display:none;position:fixed;inset:0;background:rgba(15,95,168,.92);z-index:400;align-items:center;justify-content:center;padding:20px}
+#glossary-modal.open{display:flex}
+#glossary-modal .modal-box{max-height:90vh;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+#terms-info-modal{display:none;position:fixed;inset:0;background:rgba(15,95,168,.92);z-index:300;align-items:center;justify-content:center;padding:20px}
+#terms-info-modal.open{display:flex}
+#terms-info-modal .modal-box{max-height:90vh;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
 .modal-box{background:white;width:100%;max-height:85vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:slideUp .25s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-header{padding:16px 20px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -250,6 +257,7 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
   <div class="detail-header">
     <button class="back-btn" onclick="goBack()">&#9664; חזרה</button>
     <div class="detail-title" id="detail-title"></div>
+    <a id="more-info-btn" class="more-info-btn" target="_blank" rel="noopener">מידע נוסף ↗</a>
   </div>
   <div class="detail-content" id="detail-content"></div>
 </div>
@@ -435,6 +443,8 @@ function openDrug(idx) {
   document.getElementById('list-view').style.display = 'none';
   document.getElementById('detail-view').style.display = 'flex';
   document.getElementById('detail-title').textContent = currentDrug.generic;
+  var searchQuery = 'מדריך התרופות של כללית ' + currentDrug.generic;
+  document.getElementById('more-info-btn').href = 'https://www.google.com/search?q=' + encodeURIComponent(searchQuery);
   renderBrand(0); document.getElementById('detail-content').scrollTop = 0;
 }
 function goBack() {
@@ -464,15 +474,20 @@ function renderBrand(idx) {
   if (brand.dilution_fluid)           dc += mkcard('🧪 נוזל דילול', brand.dilution_fluid, false);
   if (brand.optimal_concentration)    dc += mkcard('⚗️ ריכוז אופטימאלי', brand.optimal_concentration, false);
   if (brand.stability_after_dilution) dc += mkcard('⏱️ יציבות', brand.stability_after_dilution, false);
-  if (brand.storage_after_dilution)   dc += mkcard('📦 אחסון', storageBadge(brand.storage_after_dilution), true);
+  if (brand.storage_after_dilution)   dc += mkcard('📦 אחסון', storageBadge(brand.storage_after_dilution), false);
   if (brand.administration_duration)  dc += mkcard('⏰ משך מתן', '<span class="hl">' + brand.administration_duration + '</span>', true);
   var dil = dc ? '<div class="info-section"><div class="section-title">2️⃣ דילול משני ומתן IV</div><div class="cards-grid">' + dc + '</div></div>' : '';
   var notes = brand.notes ? '<div class="notes-card"><div class="card-label">⚠️ הערות ואזהרות</div><div class="card-value">' + brand.notes + '</div></div>' : '';
   var imsc  = brand.im_sc ? '<div class="imsc-card"><div class="card-label">💉 מתן I.M / S.C</div><div class="card-value">' + brand.im_sc + '</div></div>' : '';
+  var storageBar = brand.storage_before
+    ? '<div class="top-info"><span class="top-info-label">אחסון לפני פתיחה:</span>' + storageBadge(brand.storage_before) + '</div>'
+    : '';
   document.getElementById('detail-content').innerHTML =
-    '<div class="top-info"><span class="top-info-label">אחסון לפני פתיחה:</span>' + storageBadge(brand.storage_before) + '</div>' +
     '<div class="brand-section"><div class="brand-label">בחרי מותג (' + drug.brands.length + ' זמינים)</div><div class="brand-scroll">' + chips + '</div></div>' +
-    recon + dil + notes + imsc + '<div style="height:16px"></div>';
+    storageBar +
+    recon + dil +
+    (notes || imsc ? '<div class="alerts-divider"></div>' : '') +
+    notes + imsc + '<div style="height:16px"></div>';
 }
 
 window.addEventListener('popstate', goBack);
