@@ -65,7 +65,7 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
 .card.full{grid-column:1/-1}
 .card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--light);margin-bottom:6px}
-.card-value{font-size:14px;font-weight:600;color:var(--text);line-height:1.55;white-space:pre-line}
+.card-value{font-size:14px;font-weight:600;color:var(--text);line-height:1.55;white-space:pre-line;direction:rtl;unicode-bidi:plaintext;text-align:right}
 .hl{color:var(--accent);font-weight:700}
 .sbadge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:13px;font-weight:700}
 .room{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
@@ -89,6 +89,14 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 .menu-item:active{background:var(--accent-light)}
 .menu-item-icon{font-size:20px}
 /* Modals */
+#recent-dropdown{display:none;position:absolute;top:calc(100% - 1px);right:16px;left:16px;background:white;border:1.5px solid var(--accent);border-top:none;border-radius:0 0 12px 12px;z-index:100;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);overflow:hidden}
+#recent-dropdown.open{display:block}
+.recent-header{padding:8px 14px;font-size:10px;font-weight:800;color:var(--light);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.recent-clear{background:none;border:none;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif}
+.recent-item{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;color:var(--text)}
+.recent-item:last-child{border-bottom:none}
+.recent-item:active{background:var(--accent-light)}
+.recent-item-icon{color:var(--light);font-size:13px}position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end}
 #glossary-modal,#terms-info-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end}
 #glossary-modal.open,#terms-info-modal.open{display:flex}
 .modal-box{background:white;width:100%;max-height:85vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:slideUp .25s ease}
@@ -226,12 +234,13 @@ header{background:var(--accent);padding:12px 16px;display:flex;align-items:cente
 </header>
 
 <div id="list-view">
-  <div class="search-bar">
+  <div class="search-bar" style="position:relative">
     <div class="search-inner">
       <span class="icon">🔍</span>
       <input type="text" id="search" placeholder="חיפוש תרופה..." autocomplete="off" spellcheck="false">
       <button id="clear-btn" onclick="clearSearch()">✕</button>
     </div>
+    <div id="recent-dropdown"></div>
   </div>
   <div class="list-stats" id="list-stats"></div>
   <div id="drug-list"></div>
@@ -267,18 +276,101 @@ var DRUGS = [{"generic": "ACYCLOVIR", "brands": [{"name": "Acyclovir® 250 mg \n
   });
 })();
 
+// ── Force hide modals on load ──
+['glossary-modal','terms-info-modal','recent-dropdown'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) { el.style.display = 'none'; el.classList.remove('open'); }
+});
+document.getElementById('menu-overlay').classList.remove('open');
+document.getElementById('side-menu').classList.remove('open');
+
+// ── Recent searches ──
+var recentSearches = [];
+try { recentSearches = JSON.parse(sessionStorage.getItem('recent-searches') || '[]'); } catch(e) {}
+
+function saveRecent(q) {
+  if (!q || q.length < 2) return;
+  recentSearches = recentSearches.filter(function(r) { return r !== q; });
+  recentSearches.unshift(q);
+  if (recentSearches.length > 5) recentSearches = recentSearches.slice(0, 5);
+  try { sessionStorage.setItem('recent-searches', JSON.stringify(recentSearches)); } catch(e) {}
+}
+function renderRecentDropdown() {
+  var dd = document.getElementById('recent-dropdown');
+  if (recentSearches.length === 0) { dd.style.display = 'none'; dd.classList.remove('open'); return; }
+  var html = '<div class="recent-header"><span>חיפושים אחרונים</span><button class="recent-clear" onclick="clearRecent()">נקה</button></div>';
+  recentSearches.forEach(function(r) {
+    html += '<div class="recent-item" onclick="applyRecent(\'' + r.replace(/'/g, "\\'") + '\')"><span class="recent-item-icon">🕐</span>' + r + '</div>';
+  });
+  dd.innerHTML = html;
+  dd.style.display = 'block'; dd.classList.add('open');
+}
+function applyRecent(q) {
+  var dd = document.getElementById('recent-dropdown');
+  dd.style.display = 'none'; dd.classList.remove('open');
+  document.getElementById('search').value = q;
+  document.getElementById('clear-btn').style.display = 'block';
+  var q2 = q.toLowerCase();
+  filteredDrugs = DRUGS.filter(function(d) {
+    if (d.generic.toLowerCase().indexOf(q2) >= 0) return true;
+    for (var j = 0; j < d.brands.length; j++) { if (d.brands[j].name.toLowerCase().indexOf(q2) >= 0) return true; }
+    return false;
+  });
+  buildList(filteredDrugs);
+}
+function clearRecent() {
+  recentSearches = [];
+  try { sessionStorage.removeItem('recent-searches'); } catch(e) {}
+  var dd = document.getElementById('recent-dropdown');
+  dd.style.display = 'none'; dd.classList.remove('open');
+}
+
+document.getElementById('search').addEventListener('focus', function() {
+  if (this.value.trim() === '') renderRecentDropdown();
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#recent-dropdown') && !e.target.closest('.search-inner')) {
+    var dd = document.getElementById('recent-dropdown');
+    dd.style.display = 'none'; dd.classList.remove('open');
+  }
+});
+
 // ── Menu ──
 function goHome() {
   document.getElementById('detail-view').style.display = 'none';
   document.getElementById('list-view').style.display = 'flex';
   clearSearch();
 }
-function openMenu()     { document.getElementById('side-menu').classList.add('open'); document.getElementById('menu-overlay').classList.add('open'); }
-function closeMenu()    { document.getElementById('side-menu').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open'); }
-function openGlossary() { closeMenu(); document.getElementById('glossary-modal').classList.add('open'); }
-function closeGlossary(){ document.getElementById('glossary-modal').classList.remove('open'); }
-function openTermsInfo(){ closeMenu(); document.getElementById('terms-info-modal').classList.add('open'); }
-function closeTermsInfo(){ document.getElementById('terms-info-modal').classList.remove('open'); }
+function openMenu() {
+  var overlay = document.getElementById('menu-overlay');
+  var menu = document.getElementById('side-menu');
+  overlay.style.display = 'block'; overlay.classList.add('open');
+  menu.classList.add('open');
+}
+function closeMenu() {
+  var overlay = document.getElementById('menu-overlay');
+  var menu = document.getElementById('side-menu');
+  overlay.style.display = 'none'; overlay.classList.remove('open');
+  menu.classList.remove('open');
+}
+function openGlossary() {
+  closeMenu();
+  var el = document.getElementById('glossary-modal');
+  el.style.display = 'flex'; el.classList.add('open');
+}
+function closeGlossary() {
+  var el = document.getElementById('glossary-modal');
+  el.style.display = 'none'; el.classList.remove('open');
+}
+function openTermsInfo() {
+  closeMenu();
+  var el = document.getElementById('terms-info-modal');
+  el.style.display = 'flex'; el.classList.add('open');
+}
+function closeTermsInfo() {
+  var el = document.getElementById('terms-info-modal');
+  el.style.display = 'none'; el.classList.remove('open');
+}
 
 // ── App ──
 function storageBadge(v) {
@@ -337,6 +429,9 @@ function clearSearch() {
 }
 function openDrug(idx) {
   currentDrug = filteredDrugs[idx]; if (!currentDrug) return;
+  var q = document.getElementById('search').value.trim();
+  if (q) saveRecent(q);
+  document.getElementById('recent-dropdown').classList.remove('open');
   document.getElementById('list-view').style.display = 'none';
   document.getElementById('detail-view').style.display = 'flex';
   document.getElementById('detail-title').textContent = currentDrug.generic;
